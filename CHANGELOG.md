@@ -101,6 +101,13 @@ All notable changes to this project will be documented in this file. See [standa
 * 无持仓资金(新增)导致无法设置持仓 ([e96e8c3](https://github.com/LeekHub/leek-fund/commit/e96e8c311b07841c0a95421d398568663e1acb37))
 * 默认份额从null变成0 ([602d945](https://github.com/LeekHub/leek-fund/commit/602d945fa96f86e0cc7e3b60c0080f6752128652))
 
+## [3.16.1](https://github.com/take7yo/leek-fund/compare/v3.16.0-mod...v3.16.1) (2025-09-05)
+
+
+### Features
+
+* 添加已清仓复选框，用于辅助计算当日清仓股票的当日盈亏计算 ([8cfa29c](https://github.com/take7yo/leek-fund/commit/8cfa29c2248b2b532acfe32aef1b1e755df5d6ea))
+
 ## [3.16.0-mod](https://github.com/take7yo/leek-fund/compare/master...v3.16.0-mod) (2025-09-05)
 
 ### Features
