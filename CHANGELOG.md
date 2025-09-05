@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.16.0-mod](https://github.com/take7yo/leek-fund/compare/master...v3.16.0-mod) (2025-09-05)
+
+### Features
+
+* 添加今日成本价（需用户自行计算），用于辅助计算当日有买卖调整场景下的今日盈亏金额计算。 ([1dc9063](https://github.com/take7yo/leek-fund/commit/1dc9063473915a8b3abdf330c569c15c2089d089))
+
+   部分效果展示：
+   ![配置页面效果](https://github.com/user-attachments/assets/d6e8a24e-4043-4b53-85d9-f764d31e27de)
+
+   ![状态栏效果](https://github.com/user-attachments/assets/f8e2e512-61e5-49fd-93e7-1ddfcee486a6)
+
+   当日成本计算模板可参考：【腾讯文档】当日成本计算模板 https://docs.qq.com/sheet/DT1NFdWtQY09JUVFj?tab=BB08J2
+
 ## [3.16.0](https://github.com/LeekHub/leek-fund/compare/v3.15.0...v3.16.0) (2025-08-30)
 
 
