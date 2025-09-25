@@ -128,12 +128,13 @@ export class ProfitStatusBar {
           }
           // const incomeTotal = amount * (Number(price).toFixed(2) - unitPrice.toFixed(2));
           // const incomeToday = amount * (Number(price).toFixed(2) - Number(open).toFixed(2));
-          const incomeTotal = (heldAmount * (Number(price) - heldPrice)).toFixed(2);
+          let incomeTotal = (heldAmount * (Number(price) - heldPrice)).toFixed(2);
           // fix #399，在昨日收盘价没有的时候使用今日开盘价
           let incomeToday = (heldAmount * (Number(price) - Number(todayHeldPrice || yestclose || open))).toFixed(2);
           // 如果是清仓状态，今日收益为 持仓数 * (今日持仓价 - 昨日收盘价或今日开盘价)
           if (isSellOut) {
             incomeToday = (heldAmount * (Number(todayHeldPrice) - Number(yestclose || open))).toFixed(2);
+            incomeTotal = (heldAmount * (Number(todayHeldPrice) - heldPrice)).toFixed(2);
           }
           const percentTotal = ((Number(incomeTotal) / (heldPrice * heldAmount)) * 100).toFixed(2);
 
