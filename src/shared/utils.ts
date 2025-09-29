@@ -40,6 +40,11 @@ export const formatDate = (val: Date | string | undefined, seperator = '-') => {
   return [year, month, day].map(formatNum).join(seperator);
 };
 
+export const padStart = (value: string | number, length: number, decimals: number = 2)=> {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return num.toFixed(decimals).padStart(length);
+};
+
 // 时间格式化
 export const formatDateTime = (date: Date) => {
   const year = date.getFullYear();
