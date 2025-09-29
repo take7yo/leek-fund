@@ -8,9 +8,10 @@ import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { TIPS_LOSE, TIPS_WIN } from '../shared/constant';
 import { LeekFundConfig } from '../shared/leekConfig';
 import { ProfitStatusBarInfo } from '../shared/typed';
-import { events, formatDate, toFixed } from '../shared/utils';
+import { events, formatDate, padStart, toFixed } from '../shared/utils';
 import StockService from '../explorer/stockService';
 import globalState from '../globalState';
+import * as vscode from 'vscode';
 
 const PREFIX = '💰';
 
@@ -108,12 +109,15 @@ export class ProfitStatusBar {
         open: number | string;
         percent: string;
         price: number | string;
+        heldPrice: number;
         amount: number;
         incomeTotal: number | string;
         incomeToday: number | string;
         incomeTotalCNY: number | string;
         incomeTodayCNY: number | string;
+        percentToday: string;
         percentTotal: string;
+        marketCap: number | string;
       };
       const stockInfo: StockInfoType[] = [];
 
@@ -136,6 +140,7 @@ export class ProfitStatusBar {
             incomeToday = (heldAmount * (Number(todayHeldPrice) - Number(yestclose || open))).toFixed(2);
             incomeTotal = (heldAmount * (Number(todayHeldPrice) - heldPrice)).toFixed(2);
           }
+          const percentToday = ((Number(incomeToday) / (Number(todayHeldPrice || yestclose || open) * heldAmount)) * 100).toFixed(2);
           const percentTotal = ((Number(incomeTotal) / (heldPrice * heldAmount)) * 100).toFixed(2);
 
           let incomeTodayCNY = '';
@@ -165,12 +170,15 @@ export class ProfitStatusBar {
             open,
             percent,
             price,
+            heldPrice,
             amount: heldAmount,
             incomeTotal,
             incomeToday,
             incomeTodayCNY,
             incomeTotalCNY,
+            percentToday,
             percentTotal,
+            marketCap: (heldAmount * Number(price)).toFixed(2),
           };
           stockInfo.push(tmp);
         }
@@ -182,18 +190,25 @@ export class ProfitStatusBar {
       const allIncomeTotal = stockInfo.reduce((prev, cur) => {
         return prev + Number(cur.incomeTotalCNY ? cur.incomeTotalCNY : cur.incomeTotal);
       }, 0);
-      // Use the year, month, and day variables as needed
-      this.stockBarItem.text = `${PREFIX} ${toFixed(allIncomeTotal)} | ${toFixed(allIncomeToday)}`;
-      // this.stockBarItem.color = fundProfit >= 0 ? this.riseColor : this.fallColor;
-      this.stockBarItem.tooltip =
-        `「股票收益统计」 ${date}\r\n \r\n` +
-        stockInfo
+      const allMarketCap = stockInfo.reduce((prev, cur) => {
+        return prev + Number(cur.marketCap);
+      }, 0);      
+      this.stockBarItem.text = `${PREFIX} ${toFixed(allMarketCap)} | ${toFixed(allIncomeTotal)} | ${toFixed(allIncomeToday)}`;
+
+      const tooltip = 
+      `「股票收益统计」 ${date} \n\n` +
+      `| 股票名称 | 成本价格 | 当前价格 | 总收益 | 总收益率 | 今日盈亏 | 今日收益率| 今日涨跌 | 持仓总市值 |\n`+
+      `|--------|--------:|--------:|------:|--------:|--------:|---------:|---------:|---------:|\n`+
+      stockInfo
           .map((v) => {
-            return `${v.name} 总收益:${v.incomeTotal} ${v.incomeTotalCNY ? `(CNY: ${v.incomeTotalCNY})` : ''} (${v.percentTotal}%) 今天${
-              Number(v.incomeToday) > 0 ? '盈利' : '亏损'
-            }:${v.incomeToday} ${v.incomeTodayCNY ? `(CNY: ${v.incomeTodayCNY})` : ''} (${v.percent}%) \r\n`;
-          })
-          .join('\r\n-----------------------------\r\n');
+            return `| ${v.name} | ${toFixed(v.heldPrice)} | ${v.price} | ${v.incomeTotal} ${v.incomeTotalCNY ?
+              `(CNY: ${v.incomeTotalCNY})` : ''} | ${v.percentTotal}% | ${v.incomeToday} ${v.incomeTodayCNY ?
+              `(CNY: ${v.incomeTodayCNY})` : ''}| ${v.percentToday}% | ${v.percent}% | ${v.marketCap} |\n`;
+          }).join('');
+
+      this.stockBarItem.tooltip = new vscode.MarkdownString(`
+        ${tooltip}
+      `);
       this.stockBarItem.show();
     }
   }
