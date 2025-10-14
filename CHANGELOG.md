@@ -101,6 +101,18 @@ All notable changes to this project will be documented in this file. See [standa
 * 无持仓资金(新增)导致无法设置持仓 ([e96e8c3](https://github.com/LeekHub/leek-fund/commit/e96e8c311b07841c0a95421d398568663e1acb37))
 * 默认份额从null变成0 ([602d945](https://github.com/LeekHub/leek-fund/commit/602d945fa96f86e0cc7e3b60c0080f6752128652))
 
+## [3.16.2](https://github.com/take7yo/leek-fund/compare/v3.16.1...v3.16.2) (2025-10-14)
+
+### Features
+
+* tooltip 调整为 markdown 表格显示，调整显示内容 ([7320b6c](https://github.com/take7yo/leek-fund/commit/7320b6c4fd78b6cd08f98f32bde5d25811ab777e))
+
+### Bug Fixes
+
+* 修复清仓股票高亮问题 ([692588b](https://github.com/take7yo/leek-fund/commit/692588b4a7574b4b351730b54c0aeb4e122d04d2))
+* 修复清仓后总收益值 ([02cbd02](https://github.com/take7yo/leek-fund/commit/02cbd026132688846ce71e79fba2ae3b54e1500a))
+* 修复无持仓资金(新增)导致无法设置持仓 ([ccdd5af](https://github.com/take7yo/leek-fund/commit/ccdd5af20fda0a976239f4392d1c9e936b09fded))
+
 ## [3.16.1](https://github.com/take7yo/leek-fund/compare/v3.16.0-mod...v3.16.1) (2025-09-05)
 
 
