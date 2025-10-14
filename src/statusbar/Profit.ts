@@ -107,6 +107,7 @@ export class ProfitStatusBar {
         low: number | string;
         high: number | string;
         open: number | string;
+        yestclose: number | string | undefined;
         percent: string;
         price: number | string;
         heldPrice: number;
@@ -168,6 +169,7 @@ export class ProfitStatusBar {
             high: '' + high,
             low: '' + low,
             open,
+            yestclose,
             percent,
             price,
             heldPrice,
@@ -197,13 +199,13 @@ export class ProfitStatusBar {
 
       const tooltip = 
       `「股票收益统计」 ${date} \n\n` +
-      `| 股票名称 | 成本价格 | 当前价格 | 总收益 | 总收益率 | 今日盈亏 | 今日收益率| 今日涨跌 | 持仓总市值 |\n`+
-      `|--------|--------:|--------:|------:|--------:|--------:|---------:|---------:|---------:|\n`+
+      `| 股票名称 | 总收益 | 总收益率 | 今日盈亏 | 今日收益率| 今日涨跌 | 持仓总市值 | 最低价 | 最高价 | 开盘价 | 昨收价 | 当前价格 | 成本价格 |\n`+
+      `|--------|--------:|--------:|------:|--------:|--------:|---------:|---------:|---------:|---------:|---------:|---------:|---------:|\n`+
       stockInfo
           .map((v) => {
-            return `| ${v.name} | ${toFixed(v.heldPrice)} | ${v.price} | ${v.incomeTotal} ${v.incomeTotalCNY ?
+            return `| ${v.name} | ${v.incomeTotal} ${v.incomeTotalCNY ?
               `(CNY: ${v.incomeTotalCNY})` : ''} | ${v.percentTotal}% | ${v.incomeToday} ${v.incomeTodayCNY ?
-              `(CNY: ${v.incomeTodayCNY})` : ''}| ${v.percentToday}% | ${v.percent}% | ${v.marketCap} |\n`;
+              `(CNY: ${v.incomeTodayCNY})` : ''}| ${v.percentToday}% | ${v.percent}% | ${v.marketCap} | ${v.low} | ${v.high} | ${v.open} | ${v.yestclose} | ${v.price} | ${toFixed(v.heldPrice, 4)} |\n`;
           }).join('');
 
       this.stockBarItem.tooltip = new vscode.MarkdownString(`
