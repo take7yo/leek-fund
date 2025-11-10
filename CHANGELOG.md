@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.16.2](https://github.com/take7yo/leek-fund/compare/v3.16.1...v3.16.2) (2025-10-14)
+
+### Features
+
+* tooltip 调整为 markdown 表格显示，调整显示内容 ([7320b6c](https://github.com/take7yo/leek-fund/commit/7320b6c4fd78b6cd08f98f32bde5d25811ab777e))
+
+### Bug Fixes
+
+* 修复清仓股票高亮问题 ([692588b](https://github.com/take7yo/leek-fund/commit/692588b4a7574b4b351730b54c0aeb4e122d04d2))
+* 修复清仓后总收益值 ([02cbd02](https://github.com/take7yo/leek-fund/commit/02cbd026132688846ce71e79fba2ae3b54e1500a))
+* 修复无持仓资金(新增)导致无法设置持仓 ([ccdd5af](https://github.com/take7yo/leek-fund/commit/ccdd5af20fda0a976239f4392d1c9e936b09fded))
+
+## [3.16.1](https://github.com/take7yo/leek-fund/compare/v3.16.0-mod...v3.16.1) (2025-09-05)
+
+
+### Features
+
+* 添加已清仓复选框，用于辅助计算当日清仓股票的当日盈亏计算 ([8cfa29c](https://github.com/take7yo/leek-fund/commit/8cfa29c2248b2b532acfe32aef1b1e755df5d6ea))
+
+## [3.16.0-mod](https://github.com/take7yo/leek-fund/compare/master...v3.16.0-mod) (2025-09-05)
+
+
+### Features
+
+* 添加今日成本价（需用户自行计算），用于辅助计算当日有买卖调整场景下的今日盈亏金额计算。 ([1dc9063](https://github.com/take7yo/leek-fund/commit/1dc9063473915a8b3abdf330c569c15c2089d089))
+
+   部分效果展示：
+   ![配置页面效果](https://github.com/user-attachments/assets/d6e8a24e-4043-4b53-85d9-f764d31e27de)
+
+   ![状态栏效果](https://github.com/user-attachments/assets/f8e2e512-61e5-49fd-93e7-1ddfcee486a6)
+
+   当日成本计算模板可参考：【腾讯文档】当日成本计算模板 https://docs.qq.com/sheet/DT1NFdWtQY09JUVFj?tab=BB08J2
+
 ## [3.16.0](https://github.com/LeekHub/leek-fund/compare/v3.15.0...v3.16.0) (2025-08-30)
 
 
