@@ -78,7 +78,7 @@ export class ProfitStatusBar {
 
   updateFundBarItem({ fundProfit = 0, fundProfitPercent = 0, fundAmount = 0, priceDate = '' }) {
     if (this.fundBarItem) {
-      this.fundBarItem.text = `${PREFIX} ${fundProfit}`;
+      this.fundBarItem.text = `${PREFIX} ${toFixed(fundProfit).toFixed(2)}`;
       this.fundBarItem.color = fundProfit >= 0 ? this.riseColor : this.fallColor;
       this.fundBarItem.tooltip =
         `「基金收益统计${priceDate}」` +
@@ -194,10 +194,10 @@ export class ProfitStatusBar {
       }, 0);
       const allMarketCap = stockInfo.reduce((prev, cur) => {
         return prev + Number(cur.marketCap);
-      }, 0);      
+      }, 0);
       this.stockBarItem.text = `${PREFIX} ${toFixed(allMarketCap)} | ${toFixed(allIncomeTotal)} | ${toFixed(allIncomeToday)}`;
 
-      const tooltip = 
+      const tooltip =
       `「股票收益统计」 ${date} \n\n` +
       `| 股票名称 | 总收益 | 总收益率 | 今日盈亏 | 今日收益率| 今日涨跌 | 持仓总市值 | 最低价 | 最高价 | 开盘价 | 昨收价 | 当前价格 | 成本价格 |\n`+
       `|--------|--------:|--------:|------:|--------:|--------:|---------:|---------:|---------:|---------:|---------:|---------:|---------:|\n`+

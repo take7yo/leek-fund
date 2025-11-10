@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.18.0](https://github.com/LeekHub/leek-fund/compare/v3.17.3...v3.18.0) (2025-11-07)
+
+
+### Features
+
+* 增加盘后时间结束后显示盘后价格信息 ([64bb82c](https://github.com/LeekHub/leek-fund/commit/64bb82ccc608745dfc664f270477704b6d89f36d))
+* 增加美股盘后价格刷新 ([b5b59c2](https://github.com/LeekHub/leek-fund/commit/b5b59c2d439f75eb3248917da4b5671e4b01b898))
+* 美股增加盘前价格刷新。close [#526](https://github.com/LeekHub/leek-fund/issues/526) ([813fe69](https://github.com/LeekHub/leek-fund/commit/813fe69ff8cb95737baa40795bd24d37cda4a8b7))
+
+
+### Bug Fixes
+
+* 修复港股竞价阶段涨跌百分比为0的bug ([8cf6a20](https://github.com/LeekHub/leek-fund/commit/8cf6a20997297def42e5cf0d0a136fe5b63bc63a))
+* 修复美股盘前时间指数价格为0的bug ([321e3c1](https://github.com/LeekHub/leek-fund/commit/321e3c154bd393e50d140bbd024f43bcdc442fe7))
+* 修改时间赋值 ([e035579](https://github.com/LeekHub/leek-fund/commit/e035579b95f3ba6986d10830c7e6d3ca28b372dd))
+
+### [3.17.3](https://github.com/LeekHub/leek-fund/compare/v3.17.2...v3.17.3) (2025-10-23)
+
+
+### Bug Fixes
+
+* 修复集合竞价阶段涨跌百分比为0的bug ([43fac8e](https://github.com/LeekHub/leek-fund/commit/43fac8e7b23c339ba229307b307bfa87c289c00c))
+
+### [3.17.2](https://github.com/LeekHub/leek-fund/compare/v3.17.1...v3.17.2) (2025-10-21)
+
+
+### Bug Fixes
+
+* close [#533](https://github.com/LeekHub/leek-fund/issues/533), 修复集合竞价阶段价格为0的bug ([63f1d18](https://github.com/LeekHub/leek-fund/commit/63f1d180a3791d1a723cd23c5b251ded1cab4464))
+
+### [3.17.1](https://github.com/LeekHub/leek-fund/compare/v3.17.0...v3.17.1) (2025-10-20)
+
+## [3.17.0](https://github.com/LeekHub/leek-fund/compare/v3.16.0...v3.17.0) (2025-10-20)
+
+
+### Features
+
+* 添加今日成本价，用于辅助计算当日盈亏 ([1dc9063](https://github.com/LeekHub/leek-fund/commit/1dc9063473915a8b3abdf330c569c15c2089d089))
+* 添加已清仓复选框，用于辅助计算当日清仓股票的当日盈亏计算 ([7366006](https://github.com/LeekHub/leek-fund/commit/7366006df40745897673ab616f8ded5c14c99412))
+
+
+### Bug Fixes
+
+* 修复现货黄金数据少字段引起后续股票数据不解析的bug ([1f680eb](https://github.com/LeekHub/leek-fund/commit/1f680ebc42d987111d0f8b67b246f78861ff34f5))
+* 无持仓资金(新增)导致无法设置持仓 ([e96e8c3](https://github.com/LeekHub/leek-fund/commit/e96e8c311b07841c0a95421d398568663e1acb37))
+* 默认份额从null变成0 ([602d945](https://github.com/LeekHub/leek-fund/commit/602d945fa96f86e0cc7e3b60c0080f6752128652))
+
+
 ## [3.16.2](https://github.com/take7yo/leek-fund/compare/v3.16.1...v3.16.2) (2025-10-14)
 
 ### Features
@@ -34,6 +82,7 @@ All notable changes to this project will be documented in this file. See [standa
    ![状态栏效果](https://github.com/user-attachments/assets/f8e2e512-61e5-49fd-93e7-1ddfcee486a6)
 
    当日成本计算模板可参考：【腾讯文档】当日成本计算模板 https://docs.qq.com/sheet/DT1NFdWtQY09JUVFj?tab=BB08J2
+
 
 ## [3.16.0](https://github.com/LeekHub/leek-fund/compare/v3.15.0...v3.16.0) (2025-08-30)
 

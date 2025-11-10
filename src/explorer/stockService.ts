@@ -9,6 +9,7 @@ import { calcFixedPriceNumber, events, formatNumber, randHeader, sortData } from
 import { getXueQiuToken } from '../shared/xueqiu-helper';
 import { LeekService } from './leekService';
 import moment = require('moment');
+import momentTz = require('moment-timezone');
 import Log from '../shared/log';
 import { getTencentHKStockData, searchStockList } from '../shared/tencentStock';
 
@@ -56,11 +57,10 @@ export default class StockService extends LeekService {
     };
 
     let stockCodes = codes.map(transFuture);
-    const hkCodes: Array<string> = []; // 港股单独请求雪球数据源
+    const hkCodes: Array<string> = []; // 港股单独请求腾讯港股数据源
     stockCodes = stockCodes.filter((code) => {
       if (code.startsWith('hk')) {
-        const _code = code.startsWith('hk0') ? code.replace('hk', '') : code.toUpperCase(); // 个股去掉'hk', 指数保留'hk'并转为大写
-        hkCodes.push(_code);
+        hkCodes.push('hk' + code.substring(2).toUpperCase()); // 指数去掉'hk'并转为大写，适配腾讯港股接口
         return false;
       } else {
         return true;
@@ -68,6 +68,7 @@ export default class StockService extends LeekService {
     });
 
     let stockList: Array<LeekTreeItem> = [];
+    globalState.noDataStockCount = 0; // 重置无数据股票计数
     const result = await Promise.allSettled([
       this.getStockData(stockCodes),
       this.getHKStockData(hkCodes),
@@ -99,7 +100,9 @@ export default class StockService extends LeekService {
     let noDataStockCount = 0;
     let stockList: Array<LeekTreeItem> = [];
 
-    const url = `https://hq.sinajs.cn/list=${codes.join(',')}`;
+    const url = `https://hq.sinajs.cn/list=${codes
+      .map((code) => code.replace('.', '$')) // 新浪接口中点号替换为$
+      .join(',')}`;
     try {
       const resp = await Axios.get(url, {
         // axios 乱码解决
@@ -126,7 +129,7 @@ export default class StockService extends LeekService {
           stockList = stockList.concat(await this.getStockData(new Array(code)));
         }
       } else {
-        const splitData = resp.data.split(';\n');
+        const splitData = resp.data.split('";\n');
         const stockPrice: {
           [key: string]: {
             amount: number;
@@ -139,8 +142,28 @@ export default class StockService extends LeekService {
           };
         } = globalState.stockPrice;
 
+        const estTime = momentTz().tz('America/New_York');
+        // 判断美东时间的时间是否在4:00AM到9:30AM之间
+        const isUsrPreMarket = estTime.isBetween(
+          estTime.clone().set({ hour: 4, minute: 0, second: 0, millisecond: 0 }),
+          estTime.clone().set({ hour: 9, minute: 30, second: 0, millisecond: 0 })
+        );
+        // 判断美东时间的时间是否在9:30AM到4:00PM之间
+        const isUsrMainMarket = estTime.isBetween(
+          estTime.clone().set({ hour: 9, minute: 30, second: 0, millisecond: 0 }),
+          estTime.clone().set({ hour: 16, minute: 0, second: 0, millisecond: 0 })
+        );
+        // 判断美东时间的时间是否在4:00PM到8:00PM之间
+        const isUsrAfterMarket = estTime.isBetween(
+          estTime.clone().set({ hour: 16, minute: 0, second: 0, millisecond: 0 }),
+          estTime.clone().set({ hour: 20, minute: 0, second: 0, millisecond: 0 })
+        );
+
         for (let i = 0; i < splitData.length - 1; i++) {
-          const code = splitData[i].split('="')[0].split('var hq_str_')[1];
+          let code = splitData[i].split('="')[0].split('var hq_str_')[1];
+          if (code.includes('$')) {
+            code = code.replace('$', '.'); // 新浪接口中$替换回点号,否则会造成无法匹配删除的结果
+          }
           const params = splitData[i].split('="')[1].split(',');
           let type = code.substr(0, 2) || 'sh';
           let symbol = code.substr(2);
@@ -152,6 +175,14 @@ export default class StockService extends LeekService {
               let open = params[1];
               let yestclose = params[2];
               let price = params[3];
+              if (Number(price) === 0) {
+                const buy1 = params[6];
+                if (Number(buy1) !== 0) {
+                  price = buy1;
+                } else {
+                  price = yestclose;
+                }
+              }
               let high = params[4];
               let low = params[5];
               fixedNumber = calcFixedPriceNumber(open, yestclose, price, high, low);
@@ -164,21 +195,42 @@ export default class StockService extends LeekService {
                 heldData.todayHeldPrice = profitData.todayUnitPrice;
                 heldData.isSellOut = profitData.isSellOut;
               }
-              stockItem = {
-                code,
-                name: params[0],
-                open: formatNumber(open, fixedNumber, false),
-                yestclose: formatNumber(yestclose, fixedNumber, false),
-                price: formatNumber(price, fixedNumber, false),
-                low: formatNumber(low, fixedNumber, false),
-                high: formatNumber(high, fixedNumber, false),
-                volume: formatNumber(params[8], 2),
-                amount: formatNumber(params[9], 2),
-                time: `${params[30]} ${params[31]}`,
-                percent: '',
-                ...heldData,
-              };
-              aStockCount += 1;
+
+              if (
+                Number(price) === 0 &&
+                Number(high) === 0 &&
+                Number(low) === 0 &&
+                Number(yestclose) === 0
+              ) {
+                noDataStockCount += 1;
+                const stockItemTemp = {
+                  code: code,
+                  name: `接口不支持该股票 ${params[0] ? params[0] : code}`,
+                  showLabel: this.showLabel,
+                  isStock: true,
+                  percent: '',
+                  type: 'nodata',
+                  contextValue: 'nodata',
+                };
+                const treeItem = new LeekTreeItem(stockItemTemp, this.context);
+                stockList.push(treeItem);
+              } else {
+                stockItem = {
+                  code,
+                  name: params[0],
+                  open: formatNumber(open, fixedNumber, false),
+                  yestclose: formatNumber(yestclose, fixedNumber, false),
+                  price: formatNumber(price, fixedNumber, false),
+                  low: formatNumber(low, fixedNumber, false),
+                  high: formatNumber(high, fixedNumber, false),
+                  volume: formatNumber(params[8], 2),
+                  amount: formatNumber(params[9], 2),
+                  time: `${params[30]} ${params[31]}`,
+                  percent: '',
+                  ...heldData,
+                };
+                aStockCount += 1;
+              }
             } else if (/^gb_/.test(code)) {
               symbol = code.substr(3);
               let open = params[5];
@@ -202,10 +254,53 @@ export default class StockService extends LeekService {
               type = code.substr(0, 3);
               noDataStockCount += 1;
             } else if (/^usr_/.test(code)) {
+              // 0 名称，1 最新价 2 涨跌百分比
+              // var hq_str_usr_nvda="英伟达,198.6900,-3.96,
+              // 3 更新时间 4 涨跌数字 5 今开 6 最高 7 最低
+              // 2025-11-05 17:27:07,-8.1900,203.0000,203.9699,197.9300,
+              // 8 9 10 成交量 11
+              // 212.1900,86.6000,188919320,189303100,4837505430000,
+              // 13 14 15 16 17 18 19 20
+              // 3.54,56.130000,0.00,0.00,0.01,0.00,24347000000,69,
+              // 21 盘前最新价 22 盘前涨跌幅 23 盘前涨跌 24 美东时间 25 昨日美东收盘时间 26 昨日收盘价
+              // 197.6300,-0.53,-1.06,Nov 05 04:27AM EST,Nov 04 04:00PM EST,206.8800,
+              // 27 28 29 30 31 32 33 34 35 新一天盘前时昨日收盘价
+              // 388870,1,2025,37901854538.6275,198.4000,196.5900,76916423.7300,197.1100,198.6900";
+
               symbol = code.substr(4);
               let open = params[5];
               let yestclose = params[26];
               let price = params[1];
+              let afterPrice: any = '';
+              let afterPercent = '';
+              if (isUsrMainMarket) {
+                price = params[1]; // 盘中价格
+                yestclose = params[26]; // 昨收盘
+              } else if (isUsrPreMarket) {
+                // 兼容纳指等无盘前价格的情况
+                if (Number(params[21]) !== 0) {
+                  price = params[21]; // 盘前价格
+                }
+                // 兼容纳指等无盘前价格的情况
+                if (Number(params[35]) !== 0) {
+                  yestclose = params[35]; // 新一天盘前时昨日收盘价
+                }
+              } else if (isUsrAfterMarket) {
+                // 兼容纳指等无盘后价格的情况
+                if (Number(params[21]) !== 0) {
+                  price = params[21]; // 盘后价格
+                }
+                // 兼容纳指等无盘后价格的情况
+                if (Number(params[1]) !== 0) {
+                  yestclose = params[1]; // 盘后的收盘价为盘中价
+                }
+              } else {
+                // 夜盘时间取盘后价格
+                if (Number(params[21]) !== 0) {
+                  afterPrice = params[21]; // 盘后价格
+                  afterPercent = params[22]; // 盘后涨跌幅
+                }
+              }
               let high = params[6];
               let low = params[7];
               fixedNumber = calcFixedPriceNumber(open, yestclose, price, high, low);
@@ -226,8 +321,11 @@ export default class StockService extends LeekService {
                 high: formatNumber(high, fixedNumber, false),
                 volume: formatNumber(params[10], 2),
                 amount: '接口无数据',
+                time: params[3],
                 percent: '',
-                ...heldData
+                afterPrice: afterPrice ? formatNumber(afterPrice, fixedNumber, false) : '',
+                afterPercent: afterPercent,
+                ...heldData,
               };
               type = code.substr(0, 4);
               usStockCount += 1;
@@ -321,12 +419,23 @@ export default class StockService extends LeekService {
               let price = params[0];
               // 名称
               let name = params[13];
+              if (name.endsWith('"')) {
+                // 适用于取回的数据缺少成交量的情况，去除名称末尾的 "
+                name = name.slice(0, -1);
+              }
+              let time = params[6];
+              let date = params[12];
               let open = params[8];
               let high = params[4];
               let low = params[5];
               let yestclose = params[7]; // 昨收盘
               let yestCallPrice = params[7]; // 昨结算
-              let volume = params[14].slice(0, -1); // 成交量。slice 去掉最后一位 "
+              let volume = 0;
+              if (params.length >= 15) {
+                // hf_XAU 伦敦金（现货黄金）取回的数据少一个字段
+                // var hq_str_hf_XAU = "4344.36,4325.850,4344.36,4344.71,4379.38,4278.78,17:09:00,4325.85,4328.90,0,0,0,2025-10-17,伦敦金（现货黄金）";
+                volume = params[14].slice(0, -1); // 成交量。slice 去掉最后一位 "
+              }
               fixedNumber = calcFixedPriceNumber(open, yestclose, price, high, low);
 
               stockItem = {
@@ -340,6 +449,7 @@ export default class StockService extends LeekService {
                 high: formatNumber(high, fixedNumber, false),
                 volume: formatNumber(volume, 2),
                 amount: '接口无数据',
+                time: `${date} ${time}`,
                 percent: '',
               };
               type = 'hf_';
@@ -354,7 +464,7 @@ export default class StockService extends LeekService {
 
               // 竞价阶段部分开盘和价格为0.00导致显示 -100%
               try {
-                if (Number(open) <= 0) {
+                if (Number(open) <= 0 && Number(price) <= 0) {
                   price = yestclose;
                 }
               } catch (err) {
@@ -376,7 +486,7 @@ export default class StockService extends LeekService {
             // 接口不支持的
             noDataStockCount += 1;
             stockItem = {
-              id: code,
+              code: code,
               name: `接口不支持该股票 ${code}`,
               showLabel: this.showLabel,
               isStock: true,
@@ -406,7 +516,7 @@ export default class StockService extends LeekService {
     globalState.usStockCount = usStockCount;
     globalState.cnfStockCount = cnfStockCount;
     globalState.hfStockCount = hfStockCount;
-    globalState.noDataStockCount = noDataStockCount;
+    globalState.noDataStockCount += noDataStockCount;
     return stockList;
   }
 
@@ -416,10 +526,11 @@ export default class StockService extends LeekService {
     }
 
     let hkStockCount = 0;
+    let noDataStockCount = 0;
     let stockList: Array<LeekTreeItem> = [];
 
     try {
-      const stockData = await getTencentHKStockData(codes.map((code) => `hk${code}`));
+      const stockData = await getTencentHKStockData(codes);
       if (!stockData) {
         return [];
       } else {
@@ -434,6 +545,21 @@ export default class StockService extends LeekService {
           };
         } = globalState.stockPrice;
         stocks.forEach((item: any) => {
+          if (item.name === 'NODATA') {
+            noDataStockCount += 1;
+            const stockItem = {
+              code: item.code,
+              name: `接口不支持该股票 ${item.code}`,
+              showLabel: this.showLabel,
+              isStock: true,
+              percent: '',
+              type: 'nodata',
+              contextValue: 'nodata',
+            };
+            const treeItem = new LeekTreeItem(stockItem, this.context);
+            stockList.push(treeItem);
+            return;
+          }
           const { open, yestclose, price, high, low, volume, amount, time, code } = item;
           const fixedNumber = calcFixedPriceNumber(open, yestclose, price, high, low);
           const profitData = stockPrice[code] || {};
@@ -461,7 +587,7 @@ export default class StockService extends LeekService {
             const { yestclose, open } = stockItem;
             let { price } = stockItem;
             // 竞价阶段部分开盘和价格为0.00导致显示 -100%
-            if (Number(open) <= 0) {
+            if (Number(open) <= 0 && Number(price) <= 0) {
               price = yestclose;
             }
             stockItem.showLabel = this.showLabel;
@@ -492,6 +618,7 @@ export default class StockService extends LeekService {
     }
 
     globalState.hkStockCount = hkStockCount;
+    globalState.noDataStockCount += noDataStockCount;
     return stockList;
   }
 
@@ -592,7 +719,12 @@ export default class StockService extends LeekService {
               description: `港股`,
             });
           } else if (['us'].includes(market)) {
-            const usCode = _code.split('.')[0]; // 去除美股指数.后的内容
+            const codeSplit = _code.split('.');
+            let usCode = codeSplit[0];
+            if (codeSplit.length > 2) {
+              // 有些美股代码会有多个点，如 BRK.B
+              usCode = codeSplit.slice(0, codeSplit.length - 1).join('.');
+            }
             result.push({
               label: `${usCode} | ${name}`,
               description: `美股`,

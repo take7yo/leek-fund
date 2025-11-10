@@ -115,7 +115,7 @@ function setAmountCfgCb(data: IAmount[]) {
     cfg[item.code] = {
       name: item.name,
       amount: calculatedAmount,
-      shares: item.shares || null, // 保存份额
+      shares: item.shares || 0, // 保存份额
       price: item.price,
       unitPrice: item.unitPrice,
       earnings: item.earnings,

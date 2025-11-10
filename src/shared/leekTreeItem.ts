@@ -35,6 +35,8 @@ export class LeekTreeItem extends TreeItem {
       earnings,
       // priceDate,
       time,
+      afterPrice,
+      afterPercent,
       isStop,
       t2,
       contextValue,
@@ -136,7 +138,7 @@ export class LeekTreeItem extends TreeItem {
           )}「${name}」`; */
           text = formatLabelString(
             globalState.labelFormat?.['sidebarStockLabelFormat'] ??
-            DEFAULT_LABEL_FORMAT.sidebarStockLabelFormat,
+              DEFAULT_LABEL_FORMAT.sidebarStockLabelFormat,
             {
               ...info,
               icon: !isIconPath ? iconPath : '',
@@ -153,7 +155,7 @@ export class LeekTreeItem extends TreeItem {
           }` + `${t2 ? `(${time})` : ''}`; */
         text = formatLabelString(
           globalState.labelFormat?.['sidebarFundLabelFormat'] ??
-          DEFAULT_LABEL_FORMAT.sidebarFundLabelFormat,
+            DEFAULT_LABEL_FORMAT.sidebarFundLabelFormat,
           {
             ...info,
             icon: !isIconPath ? iconPath : '',
@@ -162,14 +164,14 @@ export class LeekTreeItem extends TreeItem {
               t2 || !(globalState.showEarnings && Number(amount) > 0)
                 ? ''
                 : `(${grow ? '盈' : '亏'}：${grow ? '+' : ''}${earnings})`,
-            time: t2 ? `(${time})` : '',
+            time: t2 && time ? `(${time})` : '',
           }
         );
         // ${earningPercent !== 0 ? '，率：' + earningPercent + '%' : ''}
       } else if (isBinanceItem) {
         text = formatLabelString(
           globalState.labelFormat?.['sidebarBinanceLabelFormat'] ??
-          DEFAULT_LABEL_FORMAT.sidebarBinanceLabelFormat,
+            DEFAULT_LABEL_FORMAT.sidebarBinanceLabelFormat,
           {
             ...info,
             icon: !isIconPath ? iconPath : '',
@@ -179,7 +181,7 @@ export class LeekTreeItem extends TreeItem {
       } else if (isForex) {
         text = formatLabelString(
           globalState.labelFormat?.['sidebarForexLabelFormat'] ??
-          DEFAULT_LABEL_FORMAT.sidebarForexLabelFormat,
+            DEFAULT_LABEL_FORMAT.sidebarForexLabelFormat,
           {
             ...info,
           }
@@ -187,10 +189,9 @@ export class LeekTreeItem extends TreeItem {
       }
     } else {
       /* `showLabel: false` */
-      text =
-        isStockItem
-          ? `${formatTreeText(`${_percent}%`, 11)}${formatTreeText(price, 15)} 「${code}」`
-          : `${formatTreeText(`${_percent}%`)}「${code}」`;
+      text = isStockItem
+        ? `${formatTreeText(`${_percent}%`, 11)}${formatTreeText(price, 15)} 「${code}」`
+        : `${formatTreeText(`${_percent}%`)}「${code}」`;
     }
     if (!isSellOut && heldAmount && globalState.stockHeldTipShow) {
       this.label = {
@@ -210,11 +211,11 @@ export class LeekTreeItem extends TreeItem {
       }
       this.command = {
         title: name, // 标题
-        command:
-          isStockItem
-            ? 'leek-fund.stockItemClick'
-            : isBinanceItem ? 'leek-fund.binanceItemClick'
-              : 'leek-fund.fundItemClick', // 命令 ID
+        command: isStockItem
+          ? 'leek-fund.stockItemClick'
+          : isBinanceItem
+          ? 'leek-fund.binanceItemClick'
+          : 'leek-fund.fundItemClick', // 命令 ID
         arguments: [
           isStockItem ? '0' + symbol : code, // 基金/股票编码
           name, // 基金/股票名称
@@ -241,7 +242,11 @@ export class LeekTreeItem extends TreeItem {
       } else if (isFuture) {
         this.tooltip = `【今日行情】${name} ${code}\n 涨跌：${updown}   百分比：${_percent}%\n 最高：${high}   最低：${low}\n 今开：${open}   昨结：${yestclose}\n 成交量：${volume}   成交额：${amount}`;
       } else {
-        this.tooltip = `【今日行情】${labelText}${typeText}${symbolText}\n 涨跌：${updown}   百分比：${_percent}%\n 最高：${high}   最低：${low}\n 今开：${open}   昨收：${yestclose}\n 成交量：${volume}   成交额：${amount}\n ${heldAmount ? `持仓数：${toFixed(heldAmount/heldPrice)}   持仓价：${heldPrice}` : ''}`;
+        this.tooltip = `【今日行情】${labelText}${typeText}${symbolText}\n 涨跌：${updown}   百分比：${_percent}%\n 最高：${high}   最低：${low}\n 今开：${open}   昨收：${yestclose}${
+          afterPrice ? `\n 盘后：${afterPrice}   涨跌幅：${afterPercent}%` : ''
+        }${
+          heldAmount ? `\n 成本：${heldPrice}   持仓：${heldAmount}` : ''
+        }\n 成交量：${volume}   成交额：${amount}`;
       }
     } else if (isBinanceItem) {
       this.tooltip = `【今日行情】${name}\n 涨跌：${updown}   百分比：${_percent}%\n 最高：${high}   最低：${low}\n 今开：${open}   昨收：${yestclose}\n 成交量：${volume}   成交额：${amount}`;
@@ -252,5 +257,3 @@ export class LeekTreeItem extends TreeItem {
     }
   }
 }
-
-
