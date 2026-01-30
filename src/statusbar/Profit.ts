@@ -229,7 +229,9 @@ export class ProfitStatusBar {
       const todayPercentTotal = ((allIncomeToday / yestBaseTotal) * 100).toFixed(2);
 
       // 总市值
-      const allMarketCap = toFixed(allIncomeToday + yestBaseTotal).toFixed(2);
+      const allMarketCap = stockInfo.reduce((prev, cur) => {
+        return prev + Number(cur.marketCap);
+      }, 0).toFixed(2);
 
       this.stockBarItem.text = `${PREFIX} ${allMarketCap} | ${toFixed(allIncomeTotal)} | ${toFixed(allIncomeToday)}`;
 
